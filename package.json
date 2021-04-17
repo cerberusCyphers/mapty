@@ -1,0 +1,23 @@
+{
+  "name": "mapty",
+  "version": "1.0.0",
+  "description": "mapty js course project",
+  "main": "index.html",
+  "scripts": {
+    "start": "parcel index.html",
+    "build": "parcel build index.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cerberusCyphers/mapty.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cerberusCyphers/mapty/issues"
+  },
+  "homepage": "https://github.com/cerberusCyphers/mapty#readme",
+  "devDependencies": {
+    "parcel": "*"
+  }
+}
