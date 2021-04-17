@@ -19,5 +19,8 @@
   "homepage": "https://github.com/cerberusCyphers/mapty#readme",
   "devDependencies": {
     "parcel": "*"
+  },
+  "dependencies": {
+    "babel": "^6.23.0"
   }
 }

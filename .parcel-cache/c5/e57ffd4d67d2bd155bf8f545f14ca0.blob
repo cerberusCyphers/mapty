@@ -1,0 +1,146 @@
+!(function () {
+  function t(t, e) {
+    return (function (t, e) {
+      if (e.get) return e.get.call(t);
+      return e.value;
+    })(t, s(t, e, "get"));
+  }
+  function e(t, e, o) {
+    return ((function (t, e, s) {
+      if (e.set) e.set.call(t, s); else {
+        if (!e.writable) throw new TypeError("attempted to set read only private field");
+        e.value = s;
+      }
+    })(t, s(t, e, "set"), o), o);
+  }
+  function s(t, e, s) {
+    if (!e.has(t)) throw new TypeError("attempted to " + s + " private field on non-instance");
+    return e.get(t);
+  }
+  function o(t, e, s) {
+    return ((e in t) ? Object.defineProperty(t, e, {
+      value: s,
+      enumerable: !0,
+      configurable: !0,
+      writable: !0
+    }) : t[e] = s, t);
+  }
+  const n = document.querySelector(".form"), i = document.querySelector(".workouts"), a = document.querySelector(".form__input--type"), r = document.querySelector(".form__input--distance"), c = document.querySelector(".form__input--duration"), l = document.querySelector(".form__input--cadence"), u = document.querySelector(".form__input--elevation");
+  class p {
+    constructor(t, e, s) {
+      (o(this, "date", new Date()), o(this, "id", (Date.now() + "").slice(-10)), o(this, "clicks", 0), this.coords = t, this.distance = e, this.duration = s);
+    }
+    _setDescription() {
+      this.description = `${this.type[0].toUpperCase()}${this.type.slice(1)} on ${["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][this.date.getMonth()]} ${this.date.getDate()}`;
+    }
+    click() {
+      this.clicks++;
+    }
+  }
+  class d extends p {
+    constructor(t, e, s, n) {
+      (super(t, e, s), o(this, "type", "running"), this.cadence = n, this.calcPace(), this._setDescription());
+    }
+    calcPace() {
+      return (this.pace = this.duration / this.distance, this.pace);
+    }
+  }
+  class _ extends p {
+    constructor(t, e, s, n) {
+      (super(t, e, s), o(this, "type", "cycling"), this.elevationGain = n, this.calcSpeed(), this._setDescription());
+    }
+    calcSpeed() {
+      return (this.speed = this.distance / (this.duration / 60), this.speed);
+    }
+  }
+  var h = new WeakMap(), w = new WeakMap(), v = new WeakMap(), g = new WeakMap();
+  new (class {
+    constructor() {
+      (h.set(this, {
+        writable: !0,
+        value: void 0
+      }), w.set(this, {
+        writable: !0,
+        value: void 0
+      }), v.set(this, {
+        writable: !0,
+        value: []
+      }), g.set(this, {
+        writable: !0,
+        value: 13
+      }), this._getPosition(), this._getLocalStorage(), n.addEventListener("submit", this._newWorkout.bind(this)), a.addEventListener("change", this._toggleElevationField), i.addEventListener("click", this._moveToPopup.bind(this)));
+    }
+    _getPosition() {
+      navigator.geolocation && navigator.geolocation.getCurrentPosition(this._loadMap.bind(this), function () {
+        alert("Could not get your position");
+      });
+    }
+    _loadMap(s) {
+      const {latitude: o} = s.coords, {longitude: n} = s.coords;
+      console.log(`https://www.google.com/maps/@${o},${n},13z`);
+      const i = [o, n];
+      (e(this, h, L.map("map").setView(i, t(this, g))), L.tileLayer("https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(t(this, h)), t(this, h).on("click", this._showForm.bind(this)));
+    }
+    _showForm(t) {
+      (e(this, w, t), n.classList.remove("hidden"), r.focus());
+    }
+    _hideForm() {
+      (r.value = c.value = l.value = u.value = "", n.style.display = "none", n.classList.add("hidden"), setTimeout(() => n.style.display = "grid", 1e3));
+    }
+    _toggleElevationField() {
+      (u.closest(".form__row").classList.toggle("form__row--hidden"), l.closest(".form__row").classList.toggle("form__row--hidden"));
+    }
+    _newWorkout(e) {
+      const s = (...t) => t.every(t => Number.isFinite(t)), o = (...t) => t.every(t => t > 0);
+      e.preventDefault();
+      const n = a.value, i = +r.value, p = +c.value, {lat: h, lng: g} = t(this, w).latlng;
+      let k;
+      if ("running" === n) {
+        const t = +l.value;
+        if (!s(i, p, t) || !o(i, p, t)) return alert("Inputs have to be positive numbers!");
+        k = new d([h, g], i, p, t);
+      }
+      if ("cycling" === n) {
+        const t = +u.value;
+        if (!s(i, p, t) || !o(i, p)) return alert("Inputs have to be positive numbers!");
+        k = new _([h, g], i, p, t);
+      }
+      (t(this, v).push(k), console.log(k), this.renderWorkoutMarker(k), this._renderWorkout(k), this._hideForm(), this._setLocalStorage());
+    }
+    renderWorkoutMarker(e) {
+      L.marker(e.coords).addTo(t(this, h)).bindPopup(L.popup({
+        maxWidth: 250,
+        minWidth: 100,
+        autoClose: !1,
+        closeOnClick: !1,
+        className: `${e.type}-popup`
+      })).setPopupContent(`${"running" === e.type ? "🏃‍♂️" : "🚴‍♀️"} ${e.description}`).openPopup();
+    }
+    _renderWorkout(t) {
+      let e = `\n    <li class="workout workout--${t.type}" data-id="${t.id}">\n          <h2 class="workout__title">${t.description}</h2>\n          <div class="workout__details">\n            <span class="workout__icon">${"running" === t.type ? "🏃‍♂️" : "🚴‍♀️"}</span>\n            <span class="workout__value">${t.distance}</span>\n            <span class="workout__unit">km</span>\n          </div>\n          <div class="workout__details">\n            <span class="workout__icon">⏱</span>\n            <span class="workout__value">${t.duration}</span>\n            <span class="workout__unit">min</span>\n          </div>\n    `;
+      ("running" === t.type && (e += `\n      <div class="workout__details">\n            <span class="workout__icon">⚡️</span>\n            <span class="workout__value">${t.pace.toFixed(1)}</span>\n            <span class="workout__unit">min/km</span>\n          </div>\n          <div class="workout__details">\n            <span class="workout__icon">🦶🏼</span>\n            <span class="workout__value">${t.cadence}</span>\n            <span class="workout__unit">spm</span>\n          </div>\n        </li>\n    `), "cycling" === t.type && (e += `\n    <div class="workout__details">\n            <span class="workout__icon">⚡️</span>\n            <span class="workout__value">${t.speed.toFixed(1)}</span>\n            <span class="workout__unit">km/h</span>\n          </div>\n          <div class="workout__details">\n            <span class="workout__icon">⛰</span>\n            <span class="workout__value">${t.elevationGain}</span>\n            <span class="workout__unit">m</span>\n          </div>\n        </li>\n        `), n.insertAdjacentHTML("afterend", e));
+    }
+    _moveToPopup(e) {
+      const s = e.target.closest(".workout");
+      if ((console.log(s), !s)) return;
+      const o = t(this, v).find(t => t.id === s.dataset.id);
+      (console.log(o), t(this, h).setView(o.coords, t(this, g), {
+        animate: !0,
+        pan: {
+          duration: 1
+        }
+      }), o.click());
+    }
+    _setLocalStorage() {
+      localStorage.setItem("workouts", JSON.stringify(t(this, v)));
+    }
+    _getLocalStorage() {
+      const s = JSON.parse(localStorage.getItem("workouts"));
+      s && (e(this, v, s), t(this, v).forEach(t => {
+        this._renderWorkout(t);
+      }));
+    }
+  })();
+})();
